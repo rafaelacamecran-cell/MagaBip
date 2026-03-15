@@ -1,0 +1,203 @@
+/* static/style.css */
+
+/* Dentro de static/style.css */
+
+.cabecalho-customizado {
+    background-color: #2196f3;
+    /* Aquele azul */
+    color: #ffffff;
+    /* Texto branco para leitura */
+    padding: 10px;
+    /* Um espaço interno para ficar bonito */
+    border-radius: 5px 5px 0 0;
+    /* Arredonda só as pontas de cima */
+}
+
+/* --- Configuração Global e Fundo --- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f7f6;
+    margin: 0;
+}
+
+/* --- O Cartão de Login --- */
+.login-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 16px;
+    /* Cantos arredondados */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    /* Sombra suave */
+    padding: 35px 45px;
+    width: 380px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* --- Logo e Títulos --- */
+.login-logo {
+    width: 200px;
+    /* Ajuste o tamanho do seu logo */
+    margin-bottom: 25px;
+}
+
+.login-card h2 {
+    font-size: 1.1rem;
+    color: #555;
+    font-weight: 400;
+    margin: 0 0 5px 0;
+}
+
+.login-card h2 strong {
+    color: #007bff;
+    /* Cor azul para "Help Desk" */
+    font-weight: 600;
+}
+
+/* --- Formulário --- */
+.login-form {
+    margin-top: 30px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+/* Rótulos (ex: "Digite seu usuário") */
+.form-group label {
+    font-size: 13px;
+    color: #007bff;
+    /* Cor azul */
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* Campos de Input e Select */
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    background-color: #f3f6fc;
+    /* O fundo azul claro dos inputs */
+    border-radius: 8px;
+    box-sizing: border-box;
+    /* Essencial para o padding funcionar com width: 100% */
+    font-size: 1rem;
+    color: #333;
+}
+
+/* Remove a setinha padrão do select */
+.form-group select {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="gray" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+/* --- Extras (Checkbox e Link) --- */
+.form-extras {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    margin: 20px 0;
+    color: #555;
+}
+
+.form-extras label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 400;
+    color: #555;
+}
+
+.form-extras input[type="checkbox"] {
+    width: auto;
+    /* Corrige o tamanho do checkbox */
+    margin-right: 8px;
+}
+
+.form-extras a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.form-extras a:hover {
+    text-decoration: underline;
+}
+
+/* --- Botão de Envio --- */
+.btn-submit {
+    width: 100%;
+    padding: 16px;
+    background-color: #4a90e2;
+    /* Azul do botão "Continuar" */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+    background-color: #357abd;
+}
+
+/* --- Alertas de Erro (Flash) --- */
+.flash {
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.flash.error {
+    background-color: #ffebee;
+    /* Fundo vermelho claro para erros */
+    color: #c62828;
+    border: 1px solid #c62828;
+}
+
+.flash.info {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    border: 1px solid #0d47a1;
+}
+
+/* --- Botão Voltar Global --- */
+.btn-voltar-custom {
+    background-color: #0d7ee7 !important;
+    color: white !important;
+    border-radius: 50px !important;
+    padding: 10px 20px;
+    text-decoration: none !important;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    border: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-voltar-custom:hover,
+.btn-voltar-custom:focus,
+.btn-voltar-custom:active,
+.btn-voltar-custom:visited {
+    background-color: #0056b3 !important;
+    /* Azul mais escuro no hover */
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+    color: white !important;
+    text-decoration: none !important;
+}

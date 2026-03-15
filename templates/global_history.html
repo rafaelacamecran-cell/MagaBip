@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}Auditoria{% endblock %}
+{% block page_title %}Histórico Geral de Operações{% endblock %}
+
+{% block content %}
+
+<style>
+    /* Container da Seção */
+    .history-section {
+        margin-bottom: 40px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        border-top: 4px solid #0d7ee7;
+        /* Detalhe azul no topo */
+    }
+
+    .section-title {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        color: #8B8989;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* Tabela Padronizada */
+    .audit-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        background-color: #fff;
+    }
+
+    .audit-table th,
+    .audit-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .audit-table th {
+        background-color: #0d7ee7;
+        font-weight: 600;
+        color: white;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+    }
+
+    .audit-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    /* Tags de Status */
+    .tag {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.65rem;
+        font-weight: bold;
+        display: inline-block;
+    }
+
+    .tag-open {
+        background: #27ae60;
+        color: #FFFAFA;
+        cursor: not-allowed;
+        text-transform: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Vermelho */
+    .tag-closed {
+        background: #FF0000;
+        color: white;
+        cursor: not-allowed;
+        text-transform: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Verde */
+    .tag-active {
+        background: #FFD700;
+        color: #FFFAFA;
+        cursor: not-allowed;
+        text-transform: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Amarelo */
+
+    /* Paginação */
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .page-link {
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #8B8989;
+        font-size: 0.9rem;
+        background: white;
+        transition: 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .page-link:hover {
+        background-color: #eee;
+    }
+
+    .page-link.active {
+        background: #0d7ee7;
+        color: white;
+        border-color: #0d7ee7;
+    }
+
+    /* Link Style */
+    .zendesk-link {
+        color: #0d7ee7;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.85rem;
+    }
+
+    .zendesk-link:hover {
+        text-decoration: none;
+    }
+</style>
+
+<div class="history-section">
+    <div class="section-title">
+        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+            <span><i class="fa-solid fa-screwdriver-wrench"></i> Histórico de Manutenções e Defeitos</span>
+            <a href="{{ url_for('main.export_csv', report_type='suporte') }}" class="btn-voltar-custom"
+                style="padding: 5px 15px; font-size: 0.8rem; background: #27ae60;">
+                <i class="fa-solid fa-file-excel"></i> Exportar Suporte
+            </a>
+        </div>
+    </div>
+
+    <table class="audit-table">
+        <thead>
+            <tr>
+                <th>DATA ABERTURA</th>
+                <th>EQUIPAMENTO</th>
+                <th>REPORTADO POR</th>
+                <th style="width: 25%;">PROBLEMA</th>
+                <th>ZENDESK</th>
+                <th>RESOLVIDO POR</th>
+                <th>STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets.items %}
+            <tr>
+                <td>{{ ticket.created_at.strftime('%d/%m %H:%M') }}</td>
+                <td style="font-weight: bold; color: #0d7ee7;">{{ ticket.device.name }}</td>
+                <td>
+                    {{ ticket.reported_by.name }}
+                    <div style="font-size:0.75rem; color: #8B8989;">{{ ticket.reported_by.role }}</div>
+                </td>
+                <td style="color: #8B8989;">{{ ticket.problem_description }}</td>
+
+                <td>
+                    {% if ticket.zendesk_link %}
+                    <a href="{{ ticket.zendesk_link }}" target="_blank" class="zendesk-link">🔗 Link Zendesk</a>
+                    {% else %}
+                    <span style="color: #ccc;">--</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if ticket.resolved_by %}
+                    <strong>{{ ticket.resolved_by.name }}</strong>
+                    <div style="font-size: 0.65rem; color: #8B8989;">{{ ticket.resolved_at.strftime('%d/%m %H:%M') }}
+                    </div>
+                    {% else %}
+                    <span style="color: #ccc;">--</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if ticket.status == 'resolvido' %}
+                    <span class="tag tag-closed" class="btn-redondo" ; text-transform: none;>🔒 Fechado</span>
+                    {% else %}
+                    <span class="tag tag-open" class="btn-redondo" ; text-transform: none;>🔓 Aberto</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 20px; color: #8B8989;">✖︎ Nenhum registro
+                    encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        {% for page in tickets.iter_pages() %}
+        {% if page %}
+        <a href="{{ url_for('main.global_history', page_support=page, page_usage=logs.page) }}"
+            class="page-link {{ 'active' if page == tickets.page else '' }}">{{ page }}</a>
+        {% else %} <span style="padding: 5px;">...</span> {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div class="history-section">
+    <div class="section-title">
+        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+            <span><i class="fa-solid fa-clock-rotate-left"></i> Registro de Entradas e Saídas</span>
+            <a href="{{ url_for('main.export_csv', report_type='historico') }}" class="btn-voltar-custom"
+                style="padding: 5px 15px; font-size: 0.8rem; background: #27ae60;">
+                <i class="fa-solid fa-file-excel"></i> Exportar Histórico
+            </a>
+        </div>
+    </div>
+
+    <table class="audit-table">
+        <thead>
+            <tr>
+                <th>DATA RETIRADA</th>
+                <th>EQUIPAMENTO</th>
+                <th>COLABORADOR</th>
+                <th>DATA DEVOLUÇÃO</th>
+                <th>TEMPO DE USO</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs.items %}
+            <tr>
+                <td>{{ log.checkout_time.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td style="font-weight: bold; color: #0d7ee7;">{{ log.device.name }}</td>
+                <td>{{ log.user.name }}</td>
+                <td>
+                    {% if log.checkin_time %}
+                    {{ log.checkin_time.strftime('%d/%m/%Y %H:%M') }}
+                    {% else %}
+                    <span class="tag tag-active">Em uso agora</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if log.checkin_time %}
+                    {{ ((log.checkin_time - log.checkout_time).total_seconds() / 60)|round|int }} min
+                    {% else %}
+                    --
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 20px; color: #8B8989;">✖︎ Nenhum registro
+                    encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        {% for page in logs.iter_pages() %}
+        {% if page %}
+        <a href="{{ url_for('main.global_history', page_usage=page, page_support=tickets.page) }}"
+            class="page-link {{ 'active' if page == logs.page else '' }}">{{ page }}</a>
+        {% else %} <span style="padding: 5px;">...</span> {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block actions %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-voltar-custom" style="text-decoration: none !important;">
+        ↩ Voltar
+    </a>
+</div>
+{% endblock %}

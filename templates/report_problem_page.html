@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Reportar Problema{% endblock %}
+
+{% block page_title %}Reportar Problema (Assistente IA){% endblock %}
+
+{% block content %}
+<style>
+    /* (Copie os estilos do form-container do register_colaborador.html) */
+    .form-container {
+        max-width: 700px;
+        margin: 20px auto;
+        padding: 25px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+    }
+
+    .form-group textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+
+    .form-button {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+        background-color: var(--status-red);
+        /* Vermelho (Reportar) */
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 15px;
+        color: #0d7ee7;
+    }
+</style>
+
+<div class="form-container">
+    <form method="POST" action="{{ url_for('main.report_problem', device_id=device.id) }}">
+        <h3>Dispositivo {{ device.name }} ({{ device.type|capitalize }})</h3>
+        <p>Por favor, descreva o problema com o máximo de detalhe possível. A IA vai analisar a sua descrição para
+            ajudar o TI.</p>
+
+        <div class="form-group">
+            <label for="problem_description">Descrição do Problema</label>
+            <textarea id="problem_description" name="problem_description"
+                placeholder="Ex: A tela não liga, o leitor de código de barras não acende, a luzinha está piscando vermelho..."
+                required></textarea>
+        </div>
+
+        <button type="submit" class="form-button">☎︎ Reportar Problema e Enviar para Suporte</button>
+    </form>
+</div>
+
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-voltar-custom" style="text-decoration: none !important;">
+        ↩ Voltar
+    </a>
+</div>
+{% endblock %}

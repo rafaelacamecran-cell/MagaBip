@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MagaBip{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/carrinho_avatar.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        :root {
+            --magalu-blue: #0d7ee7;
+            --magalu-blue-light: #00d5ff;
+            --magalu-text: #444444;
+            --magalu-gray: #8B8989;
+            --magalu-background: #f9f9f9;
+
+            /* Cores de Status */
+            --status-blue: #0d7ee7;
+            --status-green: #27ae60;
+            --status-red: #FF0000;
+            --status-yellow: #FFD700;
+        }
+
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--magalu-background);
+            display: flex;
+            flex-direction: column;
+            color: var(--magalu-text);
+        }
+
+        .header {
+            width: 100%;
+            background-color: var(--magalu-blue);
+            color: white;
+            padding: 0.4rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-bottom: 4px solid transparent;
+            border-image: linear-gradient(to right, #e4002b, #f39c12, #f9e11e, #00a651, #00adef, #662d91) 1;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .user-info {
+            text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-details b {
+            font-size: 1rem;
+            display: block;
+        }
+
+        .user-details span {
+            font-size: 0.75rem;
+            opacity: 0.85;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            box-sizing: border-box;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--magalu-blue);
+            margin: 0 0 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- ESTILIZAÇÃO DINÂMICA DOS ALERTAS --- */
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .alert-danger {
+            background-color: #fceaea;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #d1fae5;
+        }
+
+        .alert-info {
+            background-color: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #dbeafe;
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fef3c7;
+        }
+
+        #logoutModal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-box {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 340px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-modal {
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1;
+        }
+
+        .btn-confirm {
+            background: var(--magalu-blue);
+            color: white;
+            border: none;
+        }
+
+        .btn-cancel {
+            background: white;
+            color: #555;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div style="display: flex; align-items: center;">
+            <a href="{{ url_for('main.dashboard') }}"
+                style="text-decoration: none; color: white; display: flex; align-items: center; gap: 12px;">
+                <img src="{{ url_for('static', filename='img/carrinho_avatar.png') }}" alt="Logo"
+                    style="height: 38px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+                <h1>MagaBip</h1>
+            </a>
+        </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="user-info">
+            <div class="user-details">
+                <b>{{ current_user.name }}</b>
+                <span>
+                    {{ current_user.username }} |
+                    <small
+                        style="background: rgba(255,255,255,0.2); padding: 1px 5px; border-radius: 3px; text-transform: uppercase;">
+                        {{ current_user.role }}
+                    </small>
+                    | {{ current_user.turno or 'N/A' }}
+                    {% if current_user.filial %}
+                    | <span style="color: var(--magalu-blue-light); font-weight: bold;"><i
+                            class="fa-solid fa-location-dot"></i> {{ current_user.filial.nome }}</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="nav-links">
+                {% if current_user.is_privileged %}
+                <a href="/manage_users"><i class="fa-solid fa-users"></i> Usuários</a>
+                {% if current_user.role|lower == 'ti' %}
+                <a href="{{ url_for('main.manage_filiais') }}"><i class="fa-solid fa-industry"></i> Filiais</a>
+                {% endif %}
+                <a href="{{ url_for('main.relatorio_manutencao') }}"><i class="fa-solid fa-screwdriver-wrench"></i>
+                    Histórico T.I</a>
+                {% endif %}
+
+                <a href="{{ url_for('main.profile_page') }}"><i class="fa-solid fa-user-gear"></i> Perfil</a>
+                <a href="javascript:void(0)" onclick="confirmLogout()" style="color: #ffcccc;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Sair
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </header>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            {% if "expirou" not in message and "Please log in" not in message %}
+            <div class="alert alert-{{ category if category != 'message' else 'info' }}">
+                <i
+                    class="fa-solid {% if category == 'danger' %}fa-circle-xmark{% elif category == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% set pt_captured %}{% block page_title %}{% endblock %}{% endset %}
+        {% if pt_captured|trim %}
+        <h2 class="page-title">{{ pt_captured|safe }}</h2>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="main-content" style="margin-top: auto; padding-bottom: 40px;">
+        {% block actions %}{% endblock %}
+    </footer>
+
+    {% if current_user.is_authenticated and request.endpoint != 'auth.login' %}
+    {% include 'chatbot_widget.html' %}
+    {% endif %}
+
+    <div id="logoutModal">
+        <div class="logout-box">
+            <i class="fa-solid fa-circle-exclamation"
+                style="font-size: 3rem; color: var(--magalu-blue); margin-bottom: 15px;"></i>
+            <div style="font-weight: 800; font-size: 1.3rem; margin-bottom: 10px;">Deseja sair?</div>
+            <p style="color: #666; margin-bottom: 25px;">Sua sessão no MagaBip será encerrada com segurança.</p>
+            <div style="display: flex; gap: 12px;">
+                <button class="btn-modal btn-cancel" onclick="closeLogoutModal()">Voltar</button>
+                <button class="btn-modal btn-confirm" onclick="realLogout()">Sim, Sair</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function confirmLogout() { document.getElementById('logoutModal').style.display = 'flex'; }
+        function closeLogoutModal() { document.getElementById('logoutModal').style.display = 'none'; }
+        function realLogout() { window.location.href = "{{ url_for('auth.logout') }}"; }
+
+        window.onclick = function (event) {
+            let modal = document.getElementById('logoutModal');
+            if (event.target == modal) closeLogoutModal();
+        }
+    </script>
+</body>
+
+</html>

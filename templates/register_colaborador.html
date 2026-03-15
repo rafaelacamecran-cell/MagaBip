@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastrar Colaborador{% endblock %}
+
+{% block page_title %}Liderança - Cadastrar Novo Usuário{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos para o formulário */
+    .form-container {
+        max-width: 500px;
+        margin: 20px auto;
+        padding: 25px;
+        border: 1px solid #8B8989;
+        border-radius: 8px;
+        background-color: white;
+        box-shadow: 0 2px 5px #8B8989;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+        color: #8B8989;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #8B8989;
+        border-radius: 5px;
+        box-sizing: border-box;
+        /* Garante que o padding não estoure a largura */
+    }
+
+    .form-button {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+        background-color: #0d7ee7;
+        /* Azul */
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .form-button:hover {
+        background-color: #0d7ee7;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-top: 15px;
+        color: #0d7ee7;
+        text-decoration: none;
+    }
+
+    .back-link:hover {
+        text-decoration: none;
+    }
+</style>
+
+<div class="form-container">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <form method="POST" action="{{ url_for('main.register_colaborador') }}">
+        <div class="form-group">
+            <label for="username">ID do Colaborador</label>
+            <div style="font-size: 0.65rem; color: #8B8989; margin-bottom: 4px;">(Sem pontos ou traços, ex: 123456)
+            </div>
+            <input type="text" id="username" name="username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="login">LOGIN DO COLABORADOR</label>
+            <div style="font-size: 0.65rem; color: #8B8989; margin-bottom: 4px;">(ex: log_login)</div>
+
+            <input type="text" id="login" name="login" required>
+        </div>
+
+        <div class="form-group">
+            <label for="name">NOME COMPLETO</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">SENHA PROVISÓRIA</label>
+            <div style="font-size: 0.65rem; color: #8B8989; margin-bottom: 4px;">(Magalog123)</div>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <div class="form-group">
+            <label for="turno">TURNO</label>
+            <select id="turno" name="turno">
+                <option value="1º Turno">1º Turno</option>
+                <option value="2º Turno">2º Turno</option>
+                <option value="3º Turno">3º Turno</option>
+                <option value="Administrativo">ADM</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="role">CARGO / NÍVEL DE ACESSO</label>
+            <select id="role" name="role">
+                <option value="colaborador" selected>COLABORADOR</option>
+                <option value="lideranca">LIDERANÇA</option>
+                {% if current_user.role == 'ti' %}
+                <option value="ti">T.I</option>
+                {% endif %}
+            </select>
+        </div>
+
+        <button type="submit" class="form-button" style="box-shadow: 0 4px 6px rgba(0,0,0,0.5);">Cadastrar
+            Usuário</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block actions %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-voltar-custom" style="text-decoration: none !important;">
+        ↩ Voltar
+    </a>
+</div>
+{% endblock %}

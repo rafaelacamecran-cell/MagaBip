@@ -1,0 +1,485 @@
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Botão de Comando de Voz (acima do bot) -->
+<button id="global-voice-btn" onclick="toggleVoiceCommand()" title="Comando de Voz" style="
+        position: fixed;
+        bottom: 104px;
+        right: 30px;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        border: none;
+        background: #6f42c1;
+        color: white;
+        font-size: 1.1rem;
+        cursor: pointer;
+        z-index: 9998;
+        box-shadow: 0 4px 12px rgba(111,66,193,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+    ">
+    <i class="fas fa-microphone"></i>
+</button>
+
+<!-- Toast de status de voz -->
+<div id="voice-status-toast" style="
+        display: none;
+        position: fixed;
+        bottom: 160px;
+        right: 30px;
+        background: #6f42c1;
+        color: white;
+        padding: 5px 13px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        z-index: 9999;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        white-space: nowrap;
+    ">
+    🎙️ Ouvindo...
+</div>
+
+<div id="chat-launcher" onclick="toggleChat()" aria-label="Abrir Assistente Labs" title="Abrir Assistente Labs">
+    <div class="launcher-gradient"></div>
+    <div class="launcher-icon">
+        <img src="{{ url_for('static', filename='img/bot_avatar.png') }}" alt="LabsBot">
+    </div>
+    <span class="online-status-pulse"></span>
+</div>
+
+<div id="chat-window">
+    <div class="chat-header">
+        <div class="header-main">
+            <div class="mascot-wrapper">
+                <img src="{{ url_for('static', filename='img/bot_avatar.png') }}" alt="Mascote Labs" class="mascot-img">
+                <div class="mascot-glow-rgb"></div>
+            </div>
+            <div class="header-info">
+                <h3>LabSuporte</h3>
+                <p>Perfil: <span id="user-role-badge">Identificando...</span></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-body" class="chat-body">
+        <div class="welcome-container fade-in">
+            <div class="welcome-text">
+                Olá! 👋 Sou o LabSuporte do MagaBip.
+            </div>
+        </div>
+
+        <div class="smart-chips-grid" id="smart-chips">
+        </div>
+    </div>
+
+    <div class="chat-footer">
+        <div class="input-island">
+            <textarea id="chat-input" rows="1" placeholder="Pergunte algo..." oninput="autoResize(this)"
+                onkeydown="handleEnter(event)"></textarea>
+
+            <div class="input-controls">
+                <button id="voice-btn" class="control-btn voice-trigger" title="Comando de Voz">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+                <button id="send-btn" class="control-btn send-trigger" onclick="sendMessage()" title="Enviar">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        <div class="footer-copyright">LuizaLabs &copy; 2026</div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/voice_commands.js') }}"></script>
+<script>
+    // Chatbot Widget JS
+    const form = document.getElementById('chatbot-form');
+    const input = document.getElementById('chatbot-input');
+    const messages = document.getElementById('chatbot-messages');
+    const voiceBtn = document.getElementById('voice-btn');
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const question = input.value.trim();
+        if (!question) return;
+        addMessage('Você', question);
+        input.value = '';
+        // Chama API do chatbot
+        const resp = await fetch('/api/chatbot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question })
+        });
+        const data = await resp.json();
+        addMessage('Bot', data.answer);
+    });
+    function addMessage(sender, text) {
+        const msg = document.createElement('div');
+        msg.innerHTML = `<b>${sender}:</b> ${text}`;
+        msg.style.marginBottom = '8px';
+        messages.appendChild(msg);
+        messages.scrollTop = messages.scrollHeight;
+    }
+    // Comando de voz
+    voiceBtn.onclick = function () {
+        if (window.startVoiceRecognition) window.startVoiceRecognition(input);
+    };
+
+    function toggleChat() {
+        const win = document.getElementById('chat-window');
+        if (win.style.display === 'flex') {
+            win.style.display = 'none';
+        } else {
+            win.style.display = 'flex';
+            // Foco no input ao abrir
+            setTimeout(() => {
+                const input = document.getElementById('chat-input');
+                if (input) input.focus();
+            }, 200);
+        }
+    }
+    // Fecha o chat ao clicar fora da janela
+    window.addEventListener('mousedown', function (e) {
+        const win = document.getElementById('chat-window');
+        const launcher = document.getElementById('chat-launcher');
+        if (win.style.display === 'flex' && !win.contains(e.target) && !launcher.contains(e.target)) {
+            win.style.display = 'none';
+        }
+    });
+</script>
+
+<style>
+    :root {
+        --tech-blue: #0d7ee7;
+        --tech-blue-light: #00d5ff;
+        --tech-gradient: linear-gradient(135deg, #0d7ee7 0%, #7c3aed 100%);
+        --glass-bg: rgba(255, 255, 255, 0.92);
+        --border-soft: #e2e8f0;
+    }
+
+    /* Estilização do Launcher */
+    #chat-launcher {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 9999;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    #chat-launcher:hover {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .launcher-gradient {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: var(--tech-gradient);
+        box-shadow: 0 10px 25px rgba(13, 126, 231, 0.4);
+    }
+
+    .launcher-icon {
+        position: absolute;
+        inset: 4px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .launcher-icon img {
+        width: 38px;
+        height: 38px;
+        object-fit: contain;
+    }
+
+    /* Janela do Chatbot (Efeito Vidro) */
+    #chat-window {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 380px;
+        height: 480px;
+        max-height: 85vh;
+        background: var(--glass-bg);
+        /* CORREÇÃO DE ORDEM (Linha 117): Prefixo listado primeiro */
+        -webkit-backdrop-filter: blur(15px);
+        backdrop-filter: blur(15px);
+        border-radius: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        z-index: 10000;
+        font-family: sans-serif;
+    }
+
+    /* Header e Mascote */
+    .chat-header {
+        background: var(--tech-gradient);
+        padding: 22px;
+        color: white;
+    }
+
+    .header-main {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .mascot-wrapper {
+        position: relative;
+        width: 50px;
+        height: 50px;
+    }
+
+    .mascot-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        z-index: 2;
+        position: relative;
+    }
+
+    .mascot-glow-rgb {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        background: white;
+        filter: blur(15px);
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: glow-cycle 5s infinite linear;
+    }
+
+    /* Saudação Centralizada */
+    .welcome-container {
+        width: 100%;
+        text-align: center;
+        margin: 15px 0;
+    }
+
+    .welcome-text {
+        font-size: 0.95rem;
+        color: #444;
+        font-weight: 500;
+    }
+
+    /* Chips Inteligentes Centralizados */
+    .chat-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    .smart-chips-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        /* Centralização dos chips */
+        margin-top: 10px;
+    }
+
+    .tech-chip {
+        background: white;
+        border: 1px solid var(--border-soft);
+        padding: 10px 14px;
+        border-radius: 100px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: 0.3s;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    .tech-chip:hover {
+        border-color: var(--tech-blue);
+        color: var(--tech-blue);
+        box-shadow: 0 4px 10px rgba(13, 126, 231, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .ia-special {
+        border-left: 3px solid #7c3aed;
+    }
+
+    /* Rodapé Moderno */
+    .chat-footer {
+        padding: 15px;
+        background: white;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .input-island {
+        background: #f8fafc;
+        border-radius: 20px;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid #e2e8f0;
+    }
+
+    #chat-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        resize: none;
+        font-size: 0.9rem;
+    }
+
+    .control-btn {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+    }
+
+    .voice-trigger {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .send-trigger {
+        background: var(--tech-blue);
+        color: white;
+    }
+
+    .footer-copyright {
+        text-align: center;
+        font-size: 0.7rem;
+        color: #94a3b8;
+        margin-top: 8px;
+    }
+
+    @keyframes glow-cycle {
+        0% {
+            box-shadow: 0 0 10px red;
+        }
+
+        33% {
+            box-shadow: 0 0 10px green;
+        }
+
+        66% {
+            box-shadow: 0 0 10px blue;
+        }
+
+        100% {
+            box-shadow: 0 0 10px red;
+        }
+    }
+</style>
+
+<script>
+    const ROLE = "{{ current_user.role|lower }}";
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupBotInterface();
+    });
+
+    function setupBotInterface() {
+        const badge = document.getElementById('user-role-badge');
+        const chipsContainer = document.getElementById('smart-chips');
+        badge.innerText = ROLE.toUpperCase();
+
+        let chips = [];
+        if (ROLE === 'ti') {
+            chips = ['📊 Status Servidor', '🛠️ Logs de Erro', '🔑 Reset Full', '🛰️ Debug Rede'];
+        } else if (ROLE === 'lider' || ROLE === 'liderança') {
+            chips = ['📂 Consulta Ticket', '🔗 Link Zendesk', '🔗 Link Túria', '📄 Relatórios (IA)'];
+        } else {
+            chips = ['📱 Coletor Travou', '🖨️ Etiqueta Torta', '🔌 Sem Energia', '🔋 Trocar Bateria'];
+        }
+
+        chipsContainer.innerHTML = chips.map(c => `
+            <button class="tech-chip ${c.includes('(IA)') ? 'ia-special' : ''}" onclick="sendQuickMsg('${c}')">
+                ${c}
+            </button>
+        `).join('');
+    }
+
+    function toggleChat() {
+        const win = document.getElementById('chat-window');
+        if (win.style.display === 'flex') {
+            win.style.display = 'none';
+        } else {
+            win.style.display = 'flex';
+            // Foco no input ao abrir
+            setTimeout(() => {
+                const input = document.getElementById('chat-input');
+                if (input) input.focus();
+            }, 200);
+        }
+    }
+    // Fecha o chat ao clicar fora da janela
+    window.addEventListener('mousedown', function (e) {
+        const win = document.getElementById('chat-window');
+        const launcher = document.getElementById('chat-launcher');
+        if (win.style.display === 'flex' && !win.contains(e.target) && !launcher.contains(e.target)) {
+            win.style.display = 'none';
+        }
+    });
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        appendMsg(text, 'user');
+        input.value = ""; autoResize(input);
+        try {
+            const resp = await fetch('/api/chatbot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text, role: ROLE })
+            });
+            const data = await resp.json();
+            appendMsg(data.response, 'bot');
+        } catch (e) { appendMsg("Erro na comunicação com a IA.", 'bot'); }
+    }
+
+    function appendMsg(text, sender) {
+        const body = document.getElementById('chat-body');
+        const div = document.createElement('div');
+        div.style.padding = "8px";
+        div.style.marginBottom = "5px";
+        div.style.borderRadius = "10px";
+        div.style.background = sender === 'user' ? '#e0f2fe' : '#f1f5f9';
+        div.style.alignSelf = sender === 'user' ? 'flex-end' : 'flex-start';
+        div.innerHTML = `<div style="font-size: 0.9rem;">${text}</div>`;
+        body.appendChild(div);
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function sendQuickMsg(msg) {
+        document.getElementById('chat-input').value = msg;
+        sendMessage();
+    }
+</script>

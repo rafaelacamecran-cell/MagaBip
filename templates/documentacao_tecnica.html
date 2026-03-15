@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}Documentação Técnica{% endblock %}
+{% block page_title %}Base de Conhecimento{% endblock %}
+
+{% block content %}
+<style>
+    .docs-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .doc-card {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        border-top: 4px solid #0d7ee7;
+        padding: 25px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .doc-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .doc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .doc-category {
+        background-color: #e3f2fd;
+        color: #0d7ee7;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .doc-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 0 0 15px 0;
+        line-height: 1.4;
+    }
+
+    .doc-content {
+        font-size: 0.9rem;
+        color: #555;
+        line-height: 1.6;
+        flex-grow: 1;
+    }
+
+    .doc-content strong {
+        color: #333;
+    }
+
+    .doc-content ol,
+    .doc-content ul {
+        padding-left: 20px;
+        margin-top: 10px;
+    }
+
+    .doc-content li {
+        margin-bottom: 8px;
+    }
+
+    .doc-content em {
+        color: #888;
+        font-size: 0.85rem;
+        display: block;
+        margin-top: 15px;
+        border-left: 3px solid #ccc;
+        padding-left: 10px;
+    }
+
+    .doc-tags {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        font-size: 0.8rem;
+        color: #888;
+    }
+
+    .doc-tags span {
+        display: inline-block;
+        background: #f1f1f1;
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        background: #f9f9f9;
+        border-radius: 10px;
+        color: #666;
+        grid-column: 1 / -1;
+    }
+
+    /* --- MODAL DE CRIAÇÃO --- */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        padding: 25px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .btn-save {
+        background-color: #0d7ee7;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .btn-delete {
+        background-color: #ffcccc;
+        color: #e74c3c;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+</style>
+
+<div
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+    <div>
+        <h2 style="color: #333; margin: 0;">📚 Manuais e Procedimentos</h2>
+        <span style="color: #666; font-size: 0.9rem;">Total de manuais: <b>{{ docs|length }}</b></span>
+    </div>
+
+    {% if current_user.role|lower == 'ti' %}
+    <button onclick="document.getElementById('modalNovoManual').style.display='flex'"
+        style="background-color: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+        ➕ Novo Manual
+    </button>
+    {% endif %}
+</div>
+
+<div class="docs-container">
+    {% for doc in docs %}
+    <div class="doc-card">
+        <div class="doc-header">
+            <span class="doc-category">{{ doc.category }}</span>
+        </div>
+
+        <h3 class="doc-title">{{ doc.title }}</h3>
+
+        <div class="doc-content">
+            {{ doc.content | safe }}
+        </div>
+
+        <div class="doc-tags">
+            <strong>Tags:</strong>
+            {% for tag in doc.tags.split(',') %}
+            <span>#{{ tag.strip() }}</span>
+            {% endfor %}
+
+            {% if current_user.role|lower == 'ti' %}
+            <div style="text-align: right; margin-top: 10px;">
+                <form action="{{ url_for('main.delete_documentacao', doc_id=doc.id) }}" method="POST"
+                    onsubmit="return confirm('Tem certeza que deseja apagar este manual?');">
+                    <button type="submit" class="btn-delete">🗑️ Apagar Manual</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div style="font-size: 3rem; margin-bottom: 15px;">📭</div>
+        <h3>Nenhum manual encontrado</h3>
+        <p>Ainda não existem documentos técnicos cadastrados no sistema.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="display: flex; justify-content: center; margin-top: 40px;">
+    <a href="{{ url_for('main.dashboard') }}"
+        style="background-color: #0d7ee7; color: white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        ↩ Voltar
+    </a>
+</div>
+
+{% if current_user.role|lower == 'ti' %}
+<div id="modalNovoManual" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="color: #0d7ee7; margin-top: 0;">➕ Cadastrar Novo Manual</h3>
+        <form action="{{ url_for('main.create_documentacao') }}" method="POST">
+
+            <div class="form-group">
+                <label>Título do Procedimento</label>
+                <input type="text" name="title" class="form-input" required placeholder="Ex: Como resetar o coletor">
+            </div>
+
+            <div class="form-group">
+                <label>Categoria (Equipamento)</label>
+                <select name="category" class="form-input" required>
+                    <option value="Coletores">Coletores</option>
+                    <option value="Impressoras">Impressoras</option>
+                    <option value="Rádios">Rádios</option>
+                    <option value="Transpaleteiras">Transpaleteiras</option>
+                    <option value="Empilhadeiras">Empilhadeiras</option>
+                    <option value="Sistemas">Sistemas / Software</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Tags (Separadas por vírgula)</label>
+                <input type="text" name="tags" class="form-input" required placeholder="Ex: reset, tela preta, travou">
+            </div>
+
+            <div class="form-group">
+                <label>Conteúdo (Aceita tags HTML básicas como &lt;b&gt;, &lt;br&gt;)</label>
+                <textarea name="content" class="form-input" rows="8" required
+                    placeholder="Descreva o passo a passo da solução aqui..."></textarea>
+                <small style="color: #888;">Dica: use &lt;br&gt; para pular linha e &lt;b&gt;texto&lt;/b&gt; para
+                    negrito.</small>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button type="button" class="btn-cancel"
+                    onclick="document.getElementById('modalNovoManual').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn-save">💾 Salvar Manual</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

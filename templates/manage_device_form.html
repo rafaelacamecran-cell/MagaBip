@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if device %}Editar Dispositivo{% else %}Novo Dispositivo{% endif %}
+{% endblock %}
+
+{% block page_title %}
+{% if device %}Editar {{ device.name }}{% else %}Cadastrar Novo Ativo{% endif %}
+{% endblock %}
+
+{% block content %}
+<div
+    style="max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+
+    <form method="POST">
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold; color: rgba(0, 0, 0, 0.54)">Nome do
+                Dispositivo</label>
+            <input type="text" name="name" value="{{ device.name if device else '' }}" required
+                placeholder="Ex: Radio_01 ou Col_2650_001"
+                style="width: 100%; padding: 10px; border: 1px solid #8B8989; border-radius: 5px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="type"
+                style="display: block; margin-bottom: 5px; font-weight: bold; color: rgba(0, 0, 0, 0.54)">Tipo</label>
+            <select id="type" name="type" required
+                style="width: 100%; padding: 10px; border: 1px solid #8B8989; border-radius: 5px; background: white;">
+                <option value="coletor" {% if device and device.type=='coletor' %}selected{% endif %}>📱 Coletor
+                </option>
+                <option value="impressora" {% if device and device.type=='impressora' %}selected{% endif %}>🖨️
+                    Impressora</option>
+                <option value="radio" {% if device and device.type=='radio' %}selected{% endif %}>📻 Rádio</option>
+            </select>
+        </div>
+
+        {% if device %}
+        <div style="margin-bottom: 20px;">
+            <label for="status"
+                style="display: block; margin-bottom: 5px; font-weight: bold; color: rgba(0, 0, 0, 0.54)">Status</label>
+            <select id="status" name="status" required
+                style="width: 100%; padding: 10px; border: 1px solid #8B8989; border-radius: 5px; background: white;">
+                <option value="disponivel" {% if device.status=='disponivel' %}selected{% endif %}>🟢 Disponível
+                </option>
+                <option value="em_uso" {% if device.status=='em_uso' %}selected{% endif %}>🟡 Em Uso</option>
+                <option value="em_suporte" {% if device.status=='em_suporte' %}selected{% endif %}>🔴 Em Suporte
+                </option>
+            </select>
+        </div>
+        {% endif %}
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" class="button"
+                style="background-color: #0d7ee7; color: white; flex: 1; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: 0.2s;">
+                💾 Salvar
+            </button>
+            <a href="{{ url_for('main.manage_devices_page') }}" class="button"
+                style="background-color: #FF0000; color: white; flex: 1; text-align: center; text-decoration: none; padding: 12px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: 0.2s;">
+                ✖︎ Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block actions %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-voltar-custom" style="text-decoration: none !important;">
+        ↩ Voltar
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Dispositivos{% endblock %}
+{% block page_title %}Gestão de Ativos{% endblock %}
+
+{% block content %}
+
+<style>
+    /* Barra Superior */
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    /* Estilo das Abas */
+    .tabs {
+        display: flex;
+        border-bottom: 2px solid #eee;
+        margin-bottom: 20px;
+        gap: 5px;
+    }
+
+    .tab-button {
+        padding: 10px 20px;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #8B8989;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: 0.3s;
+    }
+
+    .tab-button:hover {
+        color: #0d7ee7;
+    }
+
+    .tab-button.active {
+        color: #0d7ee7;
+        border-bottom: 3px solid #0d7ee7;
+    }
+
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Tabela */
+    .device-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        font-size: 0.65rem;
+    }
+
+    .device-table th,
+    .device-table td {
+        padding: 10px 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+    }
+
+    .device-table th {
+        background-color: #0d7ee7;
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .device-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    /* Badges de Status Arredondadas */
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 50px;
+        color: #FFFAFA;
+        font-weight: bold;
+        font-size: 0.8rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        display: inline-block;
+        text-transform: capitalize;
+    }
+
+    .status-disponivel {
+        background: #27ae60;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Verde */
+    .status-em-uso {
+        background: #FFD700;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Amarelo */
+    .status-em-suporte {
+        background: #FF0000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Vermelho */
+
+    /* Botões de Ação */
+    .btn-action {
+        padding: 0 15px;
+        height: 32px;
+        border-radius: 50px;
+        /* ARREDONDADO */
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.65rem;
+        color: #FFFAFA;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: 0.2s;
+        text-transform: none;
+    }
+
+    .btn-action:hover {
+        opacity: 0.9;
+        text-transform: none;
+    }
+
+    .btn-edit {
+        background: #0d7ee7;
+        color: #FFFAFA;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-delete {
+        background: #FF0000;
+        color: #FFFAFA;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-disabled {
+        background: #FF0000;
+        color: #FFFAFA;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Botão Adicionar Novo */
+    .btn-add {
+        background-color: #0d7ee7;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        text-decoration: none;
+        color: #FFFAFA;
+        border-radius: 50px;
+        /* ARREDONDADO */
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* Botão Voltar (Estilo Consistente) */
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 20px;
+        border-radius: 50px;
+        background-color: #8B8989;
+        color: #FFFAFA;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.8rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        transition: 0.2s;
+        border: none;
+    }
+
+    .btn-back:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        color: white;
+    }
+
+    /* Paginação */
+    .pagination-container {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .page-btn {
+        display: inline-block;
+        padding: 6px 12px;
+        border: 1px solid #ddd;
+        margin: 0 2px;
+        color: #8B8989;
+        text-decoration: none;
+        border-radius: 4px;
+        background: white;
+    }
+
+    .page-btn.active {
+        background: #0d7ee7;
+        color: white;
+        border-color: #0d7ee7;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+</style>
+
+<div class="top-bar">
+    <form method="GET" action="{{ url_for('main.manage_devices_page') }}"
+        style="display: flex; gap: 10px; flex-grow: 1; max-width: 500px;">
+        <input type="text" name="search" placeholder="🔍 Pesquisar ativo..." value="{{ search_term or '' }}"
+            style="flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; text-transform: none;">
+        <button type="submit" class="btn-action btn-edit"
+            style="height: auto; font-size: 0.9rem; text-transform: none;">Pesquisar</button>
+        {% if search_term %}
+        <a href="{{ url_for('main.manage_devices_page') }}" class="btn-action"
+            style="background-color: #8B8989; height: auto; font-size: 0.9rem; display: flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.5); text-transform: none;">🗑️
+            Limpar</a>
+        {% endif %}
+    </form>
+
+    <div style="display: flex; gap: 10px;">
+        {# Botão Novo Dispositivo oculto para Líder #}
+        {% if 'lider' not in current_user.role|lower %}
+        <a href="{{ url_for('main.create_device') }}" class="btn-add">Novo Dispositivo</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="tabs">
+    <button class="tab-button active" onclick="openTab(event, 'tab-coletores')">📱 Coletores</button>
+    <button class="tab-button" onclick="openTab(event, 'tab-impressoras')">🖨️ Impressoras</button>
+    <button class="tab-button" onclick="openTab(event, 'tab-radios')">📻 Rádios</button>
+</div>
+
+{% macro render_admin_table(pagination_data) %}
+{% if pagination_data.items %}
+<table class="device-table" style="margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); color: #8B8989;">
+    <thead>
+        <tr>
+            <th>NOME</th>
+            <th>TIPO</th>
+            <th>STATUS</th>
+            <th>USUÁRIO ATUAL</th>
+            <th>FUNÇÃO</th>
+            <th>DATA DE RETIRADA</th>
+            <th>DATA DE DEVOLUÇÃO</th>
+            <th>MOVIMENTAÇÃO</th>
+
+            {# Coluna de Ações oculta para Líder #}
+            {% if 'lider' not in current_user.role|lower %}
+            <th style="text-align: right;">AÇÕES OBRIGATÓRIAS</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for device in pagination_data.items %}
+
+        {# Lógica para buscar os logs de retirada #}
+        {% set last_log = none %}
+        {% if device.checkout_logs %}
+        {% set last_log = device.checkout_logs|sort(attribute='checkout_time', reverse=True)|first %}
+        {% endif %}
+
+        <tr>
+            <td style="font-weight: bold; color: #8B8989; white-space: normal;">{{ device.name }}</td>
+
+            <td>
+                {% if device.type == 'radio' %}Rádio{% else %}{{ device.type|capitalize }}{% endif %}
+            </td>
+
+            <td>
+                <span
+                    class="status-badge status-{{ device.status|lower|replace('em_uso', 'em-uso')|replace('em_suporte', 'em-suporte') }}">
+                    {{ device.status|replace('_', ' ')|capitalize }}
+                </span>
+            </td>
+
+            <td style="white-space: normal;">
+                {% if device.current_user %}
+                <div>{{ device.current_user.name }}</div>
+                <div style="font-size: 0.65rem; color: #888;">ID {{ device.current_user.username }}</div>
+                {% else %}
+                --
+                {% endif %}
+            </td>
+
+            <td>
+                {% if device.current_user and device.current_user.role %}
+                {{ device.current_user.role|capitalize }}
+                {% else %}
+                --
+                {% endif %}
+            </td>
+
+            <td>
+                {% if device.status == 'em_uso' and last_log %}
+                {{ last_log.checkout_time.strftime('%d/%m/%Y %H:%M') }}
+                {% else %}
+                --
+                {% endif %}
+            </td>
+
+            <td>
+                {% if device.status == 'disponivel' and device.updated_at %}
+                {{ device.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                {% else %}
+                --
+                {% endif %}
+            </td>
+
+            <td>
+                {% if device.updated_at %}
+                {{ device.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                {% else %}
+                --
+                {% endif %}
+            </td>
+
+            {# Botões de Ação ocultos para Líder #}
+            {% if 'lider' not in current_user.role|lower %}
+            <td style="text-align: right;">
+                <a href="{{ url_for('main.edit_device', id=device.id) }}" class="btn-action btn-edit">✏️ Editar</a>
+
+                {% if device.status == 'disponivel' %}
+                <form action="{{ url_for('main.delete_device', id=device.id) }}" method="POST" style="display: inline;"
+                    onsubmit="return confirm('Excluir {{ device.name }}?');">
+                    <button type="submit" class="btn-action btn-delete">✖︎ Excluir</button>
+                </form>
+                {% else %}
+                <button disabled class="btn-action btn-disabled">🔳 Ocupado</button>
+                {% endif %}
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination-container">
+    {% for page_num in pagination_data.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if page_num %}
+    {% if pagination_data.page == page_num %}
+    <span class="page-btn active">{{ page_num }}</span>
+    {% else %}
+    <a href="{{ url_for('main.manage_devices_page', page=page_num, search=search_term) }}" class="page-btn">{{ page_num
+        }}</a>
+    {% endif %}
+    {% else %}<span>...</span>{% endif %}
+    {% endfor %}
+</div>
+{% else %}
+<p style="text-align: center; padding: 20px; color: #8B8989;">✖︎ Nenhum dispositivo encontrado nesta categoria.</p>
+{% endif %}
+{% endmacro %}
+
+<div id="tab-coletores" class="tab-content" style="display: block;">
+    {{ render_admin_table(coletores_pagination) }}
+</div>
+
+<div id="tab-impressoras" class="tab-content">
+    {{ render_admin_table(impressoras_pagination) }}
+</div>
+
+<div id="tab-radios" class="tab-content">
+    {{ render_admin_table(radios_pagination) }}
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let activeTab = localStorage.getItem("activeTabAdmin");
+        if (activeTab) {
+            let tabBtn = document.querySelector(`.tab-button[onclick*="'${activeTab}'"]`);
+            if (tabBtn) tabBtn.click();
+        }
+    });
+
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+        tablinks = document.getElementsByClassName("tab-button");
+        for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+        localStorage.setItem("activeTabAdmin", tabName);
+    }
+</script>
+
+{% endblock %}
+
+{% block actions %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-voltar-custom" style="text-decoration: none !important;">
+        ↩ Voltar
+    </a>
+</div>
+{% endblock %}

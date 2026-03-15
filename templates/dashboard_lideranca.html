@@ -1,0 +1,484 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Liderança{% endblock %}
+{% block page_title %}Painel de Liderança {{ current_user.filial.nome if current_user.filial else 'Geral' }}{% endblock
+%}
+
+{% block content %}
+<style>
+    /* Estilos das Abas */
+    .tabs {
+        display: flex;
+        border-bottom: 2px solid #eee;
+        margin-bottom: 20px;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .tab-button {
+        padding: 10px 20px;
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #8B8989;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: 0.3s;
+    }
+
+    .tab-button:hover {
+        color: #0d7ee7;
+    }
+
+    .tab-button.active {
+        color: #0d7ee7;
+        border-bottom: 3px solid #0d7ee7;
+    }
+
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Cards de Dispositivos */
+    .device-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .device-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-top: 4px solid #eee;
+    }
+
+    .device-card.status-disponivel {
+        border-top-color: #27ae60;
+    }
+
+    .device-card.status-em-uso {
+        border-top-color: #FFD700;
+    }
+
+    .device-card.status-em-suporte {
+        border-top-color: #FF0000;
+    }
+
+    .device-icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #0d7ee7;
+    }
+
+    .device-name {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .device-status {
+        font-size: 0.8rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+        color: #666;
+    }
+
+    /* --- ESTILOS DO NOVO CHECKLIST (Design Refinado) --- */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .checklist-wrapper {
+        background-color: #fcfcfc;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        font-family: Arial, sans-serif;
+    }
+
+    .check-header-info {
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .check-body {
+        padding: 20px;
+    }
+
+    .check-body h2 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 25px;
+        color: #333;
+        font-size: 1.4rem;
+    }
+
+    .check-group {
+        margin-bottom: 15px;
+    }
+
+    .check-group label {
+        display: block;
+        font-size: 0.85rem;
+        color: #333;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .check-group input,
+    .check-group select,
+    .check-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    .check-group input[readonly] {
+        background-color: #ffffff;
+        color: #495057;
+        border-color: #ced4da;
+    }
+
+    .check-group select {
+        appearance: auto;
+        background-color: white;
+    }
+
+    .check-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .btn-enviar-modal {
+        flex: 1;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.95rem;
+    }
+
+    .btn-reiniciar-modal {
+        flex: 1;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.95rem;
+    }
+
+    .btn-enviar-modal:hover {
+        background-color: #0069d9;
+    }
+
+    .btn-reiniciar-modal:hover {
+        background-color: #5a6268;
+    }
+
+    .required-asterisk {
+        color: red;
+    }
+</style>
+
+<div style="color: #555; font-size: 1.5rem; margin-bottom: 20px; font-weight: 500;">
+    ⭐ Gestão de Liderança: {{ current_user.name }}
+</div>
+
+<div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 30px;">
+    <a href="{{ url_for('main.manage_users') }}" class="btn-action"
+        style="background-color: #0d7ee7; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+        👥 Gerenciar Equipe
+    </a>
+    <a href="{{ url_for('main.global_history') }}" class="btn-action"
+        style="background-color: #6c757d; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+        📋 Histórico Global
+    </a>
+    <a href="{{ url_for('main.documentacao_tecnica') }}" class="btn-action"
+        style="background-color: #17a2b8; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+        📚 Documentação
+    </a>
+    <a href="{{ url_for('main.ai_analise_page') }}" class="btn-action"
+        style="background-color: #8e44ad; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+        🤖 Análise IA e Relatórios
+    </a>
+</div>
+
+<div class="tabs">
+    <button class="tab-button active" onclick="openTab(event, 'coletores')">📱 Coletores ({{ coletores_pagination.total
+        }})</button>
+    <button class="tab-button" onclick="openTab(event, 'impressoras')">🖨️ Impressoras ({{ impressoras_pagination.total
+        }})</button>
+    <button class="tab-button" onclick="openTab(event, 'radios')">📻 Rádios ({{ radios_pagination.total }})</button>
+    <button class="tab-button" onclick="openTab(event, 'transpaleteiras')">🚜 Transpaleteiras ({{
+        transpaleteiras_pagination.total }})</button>
+    <button class="tab-button" onclick="openTab(event, 'empilhadeiras')">🏗️ Empilhadeiras ({{
+        empilhadeiras_pagination.total }})</button>
+</div>
+
+{% macro render_device_grid(pagination, type_icon) %}
+<div class="device-grid">
+    {% for device in pagination.items %}
+    <div class="device-card status-{{ device.status|replace('_', '-') }}">
+        <div style="display: flex; justify-content: space-between;">
+            <div class="device-icon">{{ type_icon }}</div>
+            <span class="device-status">
+                {% if device.status == 'disponivel' %}🟢 Disponível
+                {% elif device.status == 'em_uso' %}🟡 Em Uso
+                {% elif device.status == 'aguardando_lider' %}🟠 Autorização
+                {% else %}🔴 Manutenção{% endif %}
+            </span>
+        </div>
+        <div class="device-name">{{ device.name }}</div>
+
+        <div style="font-size: 0.8rem; color: #666;">
+            {% if device.status == 'em_uso' %}
+            <div>Com: {{ device.current_user.name if device.current_user else 'Desconhecido' }}</div>
+            <div style="font-size: 0.75rem; color: #888; margin-top: 2px;">
+                Login: {{ device.current_user.username }}
+            </div>
+            {% elif device.status == 'aguardando_lider' %}
+            <div
+                style="background: #fffbef; border: 1px solid #f6e05e; padding: 10px; border-radius: 6px; margin-bottom: 5px;">
+                <div style="color: #b7791f; font-weight: bold; font-size: 0.9rem; margin-bottom: 8px;">🟠 Aguardando
+                    Autorização</div>
+
+                {% set ticket = device.support_tickets|selectattr('status', 'equalto',
+                'aberto')|sort(attribute='created_at', reverse=True)|first %}
+                {% if ticket %}
+                <div style="font-size: 0.8rem; color: #4a5568; margin-bottom: 10px;">
+                    <strong>Defeito:</strong> {{ ticket.problem_description }}
+                </div>
+
+                <a href="https://helpdesk.magalu.com.br/hc/pt-br/requests/new?ticket_form_id=360004820674"
+                    target="_blank" rel="noopener"
+                    style="display: block; background: #0d7ee7; color: white; text-align: center; padding: 8px; border-radius: 4px; text-decoration: none; font-size: 0.75rem; font-weight: bold; margin-bottom: 8px;">
+                    1. Abrir no Zendesk ↗
+                </a>
+
+                <form action="{{ url_for('main.add_zendesk_link', device_id=device.id) }}" method="POST">
+                    <label style="font-size: 0.7rem; color: #666; display: block; margin-bottom: 4px;">2. Cole o link do
+                        chamado:</label>
+                    <input type="url" name="zendesk_link" placeholder="https://magazineluiza.zendesk.com/..." required
+                        style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.75rem; margin-bottom: 8px; box-sizing: border-box;">
+                    <button type="submit"
+                        style="width: 100%; background: #27ae60; color: white; border: none; padding: 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; cursor: pointer; transition: 0.3s;"
+                        onmouseover="this.style.backgroundColor='#219150'"
+                        onmouseout="this.style.backgroundColor='#27ae60'">
+                        Liberar para TI 🚀
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            {% elif device.status == 'em_suporte' %}
+            <div
+                style="background: #ebf8ff; border: 1px solid #90cdf4; padding: 10px; border-radius: 6px; margin-bottom: 5px;">
+                <div style="color: #2b6cb0; font-weight: bold; font-size: 0.85rem; margin-bottom: 5px;">🛠️ Em
+                    Manutenção (TI)</div>
+                {% set ticket = device.support_tickets|selectattr('status', 'equalto',
+                'aberto')|sort(attribute='created_at', reverse=True)|first %}
+                {% if ticket and ticket.zendesk_link %}
+                <div style="font-size: 0.7rem; color: #4a5568;">
+                    <strong>Zendesk:</strong> <a href="{{ ticket.zendesk_link }}" target="_blank"
+                        style="color: #2b6cb0;">Ver Chamado</a>
+                </div>
+                {% elif ticket %}
+                <div style="font-size: 0.7rem; color: #e53e3e; margin-bottom: 5px;">
+                    <strong>Zendesk:</strong> Aguardando link...
+                </div>
+                <form action="{{ url_for('main.add_zendesk_link', device_id=device.id) }}" method="POST">
+                    <input type="url" name="zendesk_link" placeholder="Cole o link Zendesk..." required
+                        style="width: 100%; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.7rem; margin-bottom: 5px; box-sizing: border-box;">
+                    <button type="submit"
+                        style="width: 100%; background: #0d7ee7; color: white; border: none; padding: 5px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer;">
+                        Anexar Link 🔗
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+            {% else %}
+            <div style="color: #27ae60; margin-bottom: 10px; font-weight: 500;">Disponível para equipe</div>
+            <button type="button"
+                style="background-color: #0d7ee7; color: white; border: none; padding: 8px; border-radius: 4px; width: 100%; cursor: pointer; font-weight: bold; transition: 0.2s;"
+                onmouseover="this.style.backgroundColor='#0b66bb'" onmouseout="this.style.backgroundColor='#0d7ee7'"
+                data-device-id="{{ device.id }}" data-device-name="{{ device.name }}"
+                data-device-type="{{ device.type }}" onclick="abrirChecklist(this)">
+                ➡︎ Retirar Equipamento
+            </button>
+            {% endif %}
+        </div>
+
+        <a href="{{ url_for('main.device_history', device_id=device.id) }}"
+            style="margin-top: 15px; font-size: 0.8rem; color: #0d7ee7; text-decoration: none; font-weight: bold; display: inline-block;">
+            📊 Ver Histórico
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+<div id="coletores" class="tab-content" style="display: block;"> {{ render_device_grid(coletores_pagination, '📱') }}
+</div>
+<div id="impressoras" class="tab-content"> {{ render_device_grid(impressoras_pagination, '🖨️') }} </div>
+<div id="radios" class="tab-content"> {{ render_device_grid(radios_pagination, '📻') }} </div>
+<div id="transpaleteiras" class="tab-content"> {{ render_device_grid(transpaleteiras_pagination, '🚜') }} </div>
+<div id="empilhadeiras" class="tab-content"> {{ render_device_grid(empilhadeiras_pagination, '🏗️') }} </div>
+
+<div id="modalChecklist" class="modal-overlay">
+    <div class="checklist-wrapper">
+        <form id="formChecklist" method="POST" action="">
+            <div class="check-header-info">
+                <div class="check-group">
+                    <label>Data e Hora de Abertura:</label>
+                    <input type="text" id="checkDataHora" readonly>
+                </div>
+                <div class="check-group">
+                    <label>ID do Colaborador:</label>
+                    <input type="text" value="{{ current_user.colaborador_id or '' }}" readonly>
+                </div>
+                <div class="check-group" style="margin-bottom: 0;">
+                    <label>Nome do Colaborador:</label>
+                    <input type="text" value="{{ current_user.name }}" readonly>
+                </div>
+            </div>
+
+            <div class="check-body">
+                <h2>Checklist de Equipamento</h2>
+
+                <div class="check-group">
+                    <label>Setor - Centro de Custo: <span class="required-asterisk">*</span></label>
+                    <select name="setor" required>
+                        <option value="">Selecione</option>
+                        <option value="Recebimento">Recebimento</option>
+                        <option value="Expedição">Expedição</option>
+                        <option value="Estoque">Estoque</option>
+                    </select>
+                </div>
+
+                <div class="check-group">
+                    <label>Turno: <span class="required-asterisk">*</span></label>
+                    <select name="turno" required>
+                        <option value="">Selecione</option>
+                        <option value="1º Turno">1º Turno</option>
+                        <option value="2º Turno">2º Turno</option>
+                        <option value="3º Turno">3º Turno</option>
+                        <option value="Administrativo">Administrativo</option>
+                    </select>
+                </div>
+
+                <div class="check-group">
+                    <label>Tipo de Equipamento:</label>
+                    <input type="text" id="checkEquipamentoTipo" readonly style="text-transform: capitalize;">
+                </div>
+
+                <div class="check-group">
+                    <label>Equipamento a Retirar: <span class="required-asterisk">*</span></label>
+                    <input type="text" id="checkEquipamentoNome" readonly>
+                </div>
+
+                <div class="check-group">
+                    <label>Nível da Bateria: <span class="required-asterisk">*</span></label>
+                    <select name="nivel_bateria" required>
+                        <option value="">Selecione</option>
+                        <option value="100%">100% - 80%</option>
+                        <option value="80%">79% - 50%</option>
+                        <option value="50%">49% - 20%</option>
+                        <option value="Critica">Abaixo de 20%</option>
+                    </select>
+                </div>
+
+                <div class="check-group">
+                    <label>Observações:</label>
+                    <textarea name="observacoes" rows="3"
+                        placeholder="Descreva qualquer observação adicional..."></textarea>
+                </div>
+
+                <div class="check-buttons">
+                    <button type="submit" class="btn-enviar-modal">Enviar</button>
+                    <button type="reset" class="btn-reiniciar-modal" onclick="fecharModalChecklist()">🔄
+                        Reiniciar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Controle das Abas
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) tabcontent[i].style.display = "none";
+        tablinks = document.getElementsByClassName("tab-button");
+        for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.classList.add("active");
+    }
+
+    // Controle do Modal de Checklist
+    function abrirChecklist(button) {
+        const deviceId = button.getAttribute('data-device-id');
+        const deviceName = button.getAttribute('data-device-name');
+        const deviceType = button.getAttribute('data-device-type');
+
+        document.getElementById('formChecklist').action = "/device/pickup/" + deviceId;
+        document.getElementById('checkEquipamentoNome').value = deviceName;
+        document.getElementById('checkEquipamentoTipo').value = deviceType;
+
+        const dataFormatada = new Intl.DateTimeFormat('pt-BR', {
+            dateStyle: 'short', timeStyle: 'medium'
+        }).format(new Date());
+
+        document.getElementById('checkDataHora').value = dataFormatada;
+        document.getElementById('modalChecklist').style.display = 'flex';
+    }
+
+    function fecharModalChecklist() {
+        document.getElementById('modalChecklist').style.display = 'none';
+    }
+</script>
+{% endblock %}

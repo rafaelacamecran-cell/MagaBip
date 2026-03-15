@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Assistente IA{% endblock %}
+{% block page_title %}Assistente Inteligente de Chamados{% endblock %}
+
+{% block content %}
+<style>
+    /* Card Centralizado */
+    .ai-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-top: 4px solid #0d7ee7;
+    }
+
+    /* Formulários */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #8B8989;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-family: inherit;
+        transition: 0.2s;
+    }
+
+    .form-control:focus {
+        border-color: #0d7ee7;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(13, 126, 231, 0.1);
+    }
+
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    /* Botão Principal */
+    .btn-ai-generate {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: white;
+        background-color: #0d7ee7;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-ai-generate:hover {
+        background-color: #0b6bc4;
+        transform: translateY(-1px);
+    }
+
+    .btn-ai-generate:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Área de Resposta */
+    .response-area {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+        display: none;
+        animation: fadeIn 0.5s;
+    }
+
+    .response-box {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+        position: relative;
+    }
+
+    /* Botão Copiar */
+    .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        padding: 5px 10px;
+        font-size: 0.65rem;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #8B8989;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+    .copy-btn:hover {
+        background-color: #e2e6ea;
+        color: #0d7ee7;
+    }
+
+    /* Loading Spinner */
+    .loading-container {
+        text-align: center;
+        padding: 20px;
+        display: none;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #0d7ee7;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px auto;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="ai-container">
+    <div style="text-align: center; margin-bottom: 25px; color: #666;">
+        <p>Descreva o problema de forma simples (ex: "tela quebrada").<br>
+            A IA irá gerar um texto técnico e formal pronto para o Zendesk.</p>
+    </div>
+
+    <div class="form-group">
+        <label for="device_name">Nome do Dispositivo</label>
+        <input type="text" id="device_name" class="form-control" placeholder="Ex: COL_2650_007 ou Impressora Zebra 02">
+    </div>
+
+    <div class="form-group">
+        <label for="problem_description">Descrição Simples do Problema</label>
+        <textarea id="problem_description" class="form-control"
+            placeholder="Ex: O colaborador derrubou o equipamento e a tela trincou. Não liga mais."></textarea>
+    </div>
+
+    <button id="ai-button" class="btn-ai-generate" onclick="runZendeskHelper()">
+        <span>Gerar Ticket com IA</span>
+    </button>
+
+    <div id="loading-spinner" class="loading-container">
+        <div class="spinner"></div>
+        <p style="color: #666; font-size: 0.9rem;">A Inteligência Artificial está escrevendo o chamado...</p>
+    </div>
+
+    <div class="response-area" id="ai-response">
+        <h4 style="color: #0d7ee7; margin-bottom: 15px;">Sugestão Gerada</h4>
+
+        <div class="form-group">
+            <label for="ai-subject">Assunto (Subject)</label>
+            <div class="response-box">
+                <button class="copy-btn" onclick="copyToClipboard('ai-subject')">Copiar</button>
+                <input type="text" id="ai-subject" class="form-control"
+                    style="border:none; background:transparent; font-weight:bold; color:#8B8989;" readonly>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="ai-body">Corpo da Mensagem (Description)</label>
+            <div class="response-box">
+                <button class="copy-btn" onclick="copyToClipboard('ai-body')">Copiar</button>
+                <textarea id="ai-body" class="form-control"
+                    style="border:none; background:transparent; min-height: 150px; color:#8B8989;" readonly></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- FUNÇÃO DE COPIAR ---
+    function copyToClipboard(elementId) {
+        const field = document.getElementById(elementId);
+        field.select();
+        field.setSelectionRange(0, 99999); // Para mobile
+        navigator.clipboard.writeText(field.value).then(() => {
+            // Feedback visual no botão
+            const btn = document.querySelector(`button[onclick="copyToClipboard('${elementId}')"]`);
+            const originalText = btn.innerText;
+            btn.innerText = "Copiado!";
+            setTimeout(() => { btn.innerText = originalText; }, 2000);
+        });
+    }
+
+    // --- CHAMADA PARA A API ---
+    async function runZendeskHelper() {
+        const aiButton = document.getElementById('ai-button');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const aiResponseDiv = document.getElementById('ai-response');
+
+        const deviceName = document.getElementById('device_name').value;
+        const problemDesc = document.getElementById('problem_description').value;
+
+        if (!deviceName || !problemDesc) {
+            alert('Por favor, preencha o nome do dispositivo e a descrição do problema.');
+            return;
+        }
+
+        // Estado de Carregamento
+        aiButton.disabled = true;
+        aiButton.innerHTML = "<span>⏳ Processando...</span>";
+        loadingSpinner.style.display = 'block';
+        aiResponseDiv.style.display = 'none';
+
+        try {
+            // Prompt do Sistema (Instrução para a IA)
+            const systemPrompt = `
+            Você é um especialista em Suporte de TI Nível 2.
+            Sua tarefa é transformar uma descrição informal de um problema em um ticket profissional para o Zendesk.
+            
+            Entrada do Usuário:
+            Dispositivo: ${deviceName}
+            Problema: ${problemDesc}
+            
+            REGRAS OBRIGATÓRIAS:
+            1. Retorne APENAS um JSON válido. Não use Markdown. Não use aspas triplas.
+            2. Formato do JSON: {"subject": "...", "body": "..."}
+            3. O 'subject' deve ser conciso e técnico (Ex: [Manutenção Física] - Coletor com Tela Danificada).
+            4. O 'body' deve ser formal, polido e solicitar reparo ou análise.
+            `;
+
+            // Chama a rota Python (Certifique-se de adicionar esta rota no backend)
+            const response = await fetch("{{ url_for('main.ai_ticket_helper') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: systemPrompt })
+            });
+
+            if (!response.ok) throw new Error(`Erro na API: ${response.status}`);
+
+            const data = await response.json();
+
+            // Verifica se a resposta veio limpa ou precisa de parse extra
+            let aiContent = data.response;
+
+            // Tratamento de erro caso a IA mande texto extra fora do JSON
+            try {
+                // Tenta limpar markdown se houver (```json ... ```)
+                aiContent = aiContent.replace(/```json/g, '').replace(/```/g, '').trim();
+                const parsedData = JSON.parse(aiContent);
+
+                document.getElementById('ai-subject').value = parsedData.subject;
+                document.getElementById('ai-body').value = parsedData.body;
+                aiResponseDiv.style.display = 'block';
+            } catch (e) {
+                console.error("Erro ao fazer parse do JSON da IA:", e);
+                alert("A IA gerou um texto, mas não consegui formatar. Veja o console.");
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert(`❌ Erro de conexão: ${error.message}`);
+        } finally {
+            aiButton.disabled = false;
+            aiButton.innerHTML = "<span>✨ Gerar Ticket com IA</span>";
+            loadingSpinner.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}
+
+{% block actions %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-voltar-custom" style="text-decoration: none !important;">
+        ↩ Voltar
+    </a>
+</div>
+{% endblock %}

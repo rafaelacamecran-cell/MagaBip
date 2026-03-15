@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Login - MagaBip{% endblock %}
+
+{% block content %}
+<style>
+    /* Reset and Base */
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        font-family: 'Inter', sans-serif;
+        background-color: #f7f7f7;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Override base.html styles if needed for full-page centering */
+    .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .page-title {
+        display: none;
+    }
+
+    /* Login Card */
+    .login-container {
+        background: white;
+        width: 90%;
+        max-width: 420px;
+        padding: 40px 30px;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        margin: 20px 0;
+    }
+
+    /* Custom CSS Logo (Animated Bars) */
+    .logo-bars {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 25px;
+    }
+
+    .bar {
+        height: 6px;
+        border-radius: 10px;
+        transition: width 0.3s ease;
+    }
+
+    .bar-1 {
+        width: 35px;
+        background: #FFB000;
+        margin-left: 10px;
+    }
+
+    .bar-2 {
+        width: 45px;
+        background: #FF0060;
+    }
+
+    .bar-3 {
+        width: 40px;
+        background: #9D00FF;
+        margin-left: -5px;
+    }
+
+    .bar-4 {
+        width: 50px;
+        background: #00FFD1;
+    }
+
+    /* Typography */
+    .subtitle {
+        color: #888;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+
+    .brand-name {
+        color: #0d7ee7;
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 30px;
+        letter-spacing: -1px;
+    }
+
+    /* Form Fields */
+    .form-group {
+        width: 100%;
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 16px 20px;
+        background: #fdfdfd;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        transition: all 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #0d7ee7;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(13, 126, 231, 0.05);
+    }
+
+    .form-input::placeholder {
+        color: #aaa;
+    }
+
+    /* Forgot Password */
+    .forgot-link {
+        display: block;
+        text-align: right;
+        font-size: 0.85rem;
+        color: #0d7ee7;
+        text-decoration: none;
+        margin-bottom: 30px;
+        font-weight: 600;
+    }
+
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+
+    /* Continue Button */
+    .btn-submit {
+        width: 100%;
+        padding: 16px;
+        background: #0d7ee7;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 15px rgba(13, 126, 231, 0.2);
+    }
+
+    .btn-submit:hover {
+        background: #0b6bc4;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(13, 126, 231, 0.3);
+    }
+
+    /* Footer */
+    .footer-text {
+        position: fixed;
+        bottom: 60px;
+        /* Moved up a bit more per user request */
+        color: #999;
+        font-size: 0.8rem;
+    }
+</style>
+
+<div class="login-container">
+
+    <!-- Custom Logo Bars -->
+    <div class="logo-bars">
+        <div class="bar bar-1"></div>
+        <div class="bar bar-2"></div>
+        <div class="bar bar-3"></div>
+        <div class="bar bar-4"></div>
+    </div>
+
+    <div class="subtitle">Acesse sua conta para prosseguir em</div>
+    <div class="brand-name">MagaBip</div>
+
+    <form method="POST">
+        <div class="form-group">
+            <input type="text" id="username_field" name="username" class="form-input"
+                placeholder="Usuário ou ID do Colaborador" required autofocus>
+        </div>
+        <div class="form-group">
+            <input type="password" name="password" class="form-input" placeholder="Digite sua senha" required>
+        </div>
+
+        <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">Esqueceu sua senha?</a>
+
+        <button type="submit" class="btn-submit">Continuar</button>
+    </form>
+</div>
+
+<div class="footer-text" style="position: relative; bottom: auto; margin-top: 30px; margin-bottom: 20px;">
+    <script>
+        // Mantém o foco no campo de usuário para facilitar o uso de coletores/scanners
+        const userField = document.getElementById('username_field');
+        if (userField) {
+            userField.focus();
+            // Se o foco for perdido, tenta recuperar após 2 segundos se o campo estiver vazio
+            userField.addEventListener('blur', () => {
+                if (userField.value === "") {
+                    setTimeout(() => userField.focus(), 2000);
+                }
+            });
+        }
+    </script>
+    © 2026 MagaBip. Todos os direitos reservados.
+</div>
+
+{% endblock %}

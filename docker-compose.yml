@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: magabip-db
+    restart: always
+    environment:
+      POSTGRES_USER: magabip_user
+      POSTGRES_PASSWORD: magabip_password
+      POSTGRES_DB: magabip_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: magabip-app
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://magabip_user:magabip_password@db:5432/magabip_db
+      - MODO_DEBUG=False
+    ports:
+      - "80:80"
+    volumes:
+      - .:/app
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        tag: magabip.app
+    depends_on:
+      - db
+      - fluent-bit
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: magabip-prometheus
+    restart: always
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: magabip-grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+  fluent-bit:
+    image: fluent/fluent-bit:latest
+    container_name: magabip-fluentbit
+    restart: always
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+
+volumes:
+  postgres_data:
+  prometheus_data:

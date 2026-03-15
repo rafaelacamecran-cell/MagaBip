@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Alertas TI{% endblock %}
+{% block content %}
+<h2>Alertas Recentes</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th>Colaborador</th>
+            <th>Equipamento</th>
+            <th>Mensagem</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for alerta in alertas %}
+        <tr>
+            <td>{{ alerta.data }}</td>
+            <td>{{ alerta.tipo }}</td>
+            <td>{{ alerta.colaborador }}</td>
+            <td>{{ alerta.equipamento }}</td>
+            <td>{{ alerta.mensagem }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block actions %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-voltar-custom" style="text-decoration: none !important;">
+        ↩ Voltar
+    </a>
+</div>
+{% endblock %}

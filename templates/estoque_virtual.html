@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+{% block title %}Estoque Virtual TI{% endblock %}
+{% block content %}
+<style>
+    /* Google Fonts Import */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    :root {
+        --primary-color: #0d7ee7;
+        --secondary-color: #6c757d;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #3b82f6;
+        --light-bg: #f3f4f6;
+        --card-bg: #ffffff;
+        --text-primary: #1f2937;
+        --text-secondary: #6b7280;
+        --border-color: #e5e7eb;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --radius: 12px;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--light-bg);
+        color: var(--text-primary);
+    }
+
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0rem 1rem;
+    }
+
+    /* --- TOPO E CARDS --- */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0.2rem 0 0.8rem 0;
+    }
+
+    .dashboard-header h2 {
+        font-weight: 700;
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+    }
+
+    .stat-card.blue::before {
+        background: var(--primary-color);
+    }
+
+    .stat-card.yellow::before {
+        background: var(--warning-color);
+    }
+
+    .stat-card.green::before {
+        background: var(--success-color);
+    }
+
+    .stat-card.red::before {
+        background: var(--danger-color);
+    }
+
+    .stat-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    /* --- CONTROLES E TABELA --- */
+    .controls-container {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        border: 1px solid var(--border-color);
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .table-container {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+    }
+
+    .custom-table th,
+    .custom-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        text-align: left;
+        font-size: 0.9rem;
+    }
+
+    .inline-select {
+        width: 135px;
+        padding: 0.4rem;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        font-size: 0.85rem;
+        background-color: #fff;
+    }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-disponivel {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+    }
+
+    .badge-em_uso {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+    }
+
+    .badge-defeito {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger-color);
+    }
+
+    .badge-manutencao {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--info-color);
+    }
+
+    .save-btn {
+        color: var(--secondary-color);
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 1.2rem;
+    }
+
+    .save-btn:hover {
+        color: var(--primary-color);
+    }
+
+    .text-success {
+        color: var(--success-color) !important;
+    }
+
+    .text-primary {
+        color: var(--primary-color) !important;
+    }
+
+    .d-none {
+        display: none !important;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div>
+            <h2><i class="fas fa-cubes"></i> Controle de Estoque CD</h2>
+            <p style="color: var(--text-secondary);">Gerenciamento inteligente de ativos tecnológicos em tempo real.</p>
+        </div>
+        <div class="text-end">
+            <span class="text-muted small">Última atualização: <strong id="last-update"></strong></span>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="stat-card-header">
+                <span class="stat-title">EM ESTOQUE</span>
+                <i class="fas fa-box-open" style="color: var(--primary-color);"></i>
+            </div>
+            <div class="stat-value">{{ estoque|length }}</div>
+            <div class="stat-desc">Equipamentos prontos para giro</div>
+        </div>
+
+        <div class="stat-card yellow">
+            <div class="stat-card-header">
+                <span class="stat-title">BACKUP / RESERVA</span>
+                <i class="fas fa-shield-alt" style="color: var(--warning-color);"></i>
+            </div>
+            <div class="stat-value">{{ backup|length }}</div>
+            <div class="stat-desc">Segurança operacional crítica</div>
+        </div>
+
+        <div class="stat-card green">
+            <div class="stat-card-header">
+                <span class="stat-title">EM OPERAÇÃO</span>
+                <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+            </div>
+            <div class="stat-value">{{ operacao|length }}</div>
+            <div class="stat-desc">Ativos utilizados no CD</div>
+        </div>
+
+        <div class="stat-card red">
+            <div class="stat-card-header">
+                <span class="stat-title">COM DEFEITO</span>
+                <i class="fas fa-exclamation-triangle" style="color: var(--danger-color);"></i>
+            </div>
+            <div class="stat-value">{{ com_defeito|length }}</div>
+            <div class="stat-desc">Aguardando manutenção externa</div>
+        </div>
+    </div>
+
+    <div class="controls-container">
+        <input type="text" id="filtro-nome" placeholder="Buscar Equipamento..." onkeyup="filtrarTabela()"
+            style="flex: 1; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px;" title="Buscar Equipamento">
+
+        <select id="filtro-status" aria-label="Filtrar por Status" title="Filtrar por Status" onchange="filtrarTabela()"
+            style="padding: 0.75rem; border-radius: 8px; border: 1px solid #ddd;">
+            <option value="">Todos os Status</option>
+            <option value="disponivel">🟢 Disponível</option>
+            <option value="em_uso">🟡 Em Uso</option>
+            <option value="manutencao">🔵 Manutenção</option>
+            <option value="defeito">🔴 Com Defeito</option>
+        </select>
+
+        <select id="filtro-localizacao" aria-label="Filtrar por Localização" title="Filtrar por Localização"
+            onchange="filtrarTabela()" style="padding: 0.75rem; border-radius: 8px; border: 1px solid #ddd;">
+            <option value="">Todas as Localizações</option>
+            <option value="estoque">📦 Estoque</option>
+            <option value="backup">🛡️ Backup</option>
+            <option value="operacao">✅ Operação</option>
+        </select>
+    </div>
+
+    <div class="table-container">
+        <div
+            style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+            <h3 style="margin: 0;">Inventário Detalhado</h3>
+            <span class="badge" style="background: #e3f2fd; color: #0d7ee7; padding: 5px 15px; border-radius: 20px;">
+                {{ devices|length }} Itens
+            </span>
+        </div>
+        <div class="table-responsive">
+            <table class="custom-table estoque-table">
+                <thead>
+                    <tr>
+                        <th>Equipamento</th>
+                        <th>Tipo</th>
+                        <th>Status Atual</th>
+                        <th>Localização Física</th>
+                        <th>Estado Físico</th>
+                        <th>Colaborador / ID</th>
+                        <th>Última Movimentação</th>
+                        <th style="text-align: center;">Salvar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dev in devices %}
+                    <tr id="row-{{ dev.id }}">
+                        <td><strong>{{ dev.name }}</strong></td>
+                        <td><span class="text-muted">{{ dev.type|capitalize }}</span></td>
+                        <td>
+                            <span class="status-badge 
+                                {% if dev.status == 'disponivel' %}badge-disponivel
+                                {% elif dev.status == 'em_uso' %}badge-em_uso
+                                {% elif dev.status == 'manutencao' %}badge-manutencao
+                                {% else %}badge-defeito{% endif %}">
+                                {{ dev.status|replace('_', ' ')|capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            <select class="inline-select select-loc" title="Localização Física">
+                                <option value="estoque" {% if dev.location=='estoque' %}selected{% endif %}>📦 Estoque
+                                </option>
+                                <option value="backup" {% if dev.location=='backup' %}selected{% endif %}>🛡️ Backup
+                                </option>
+                                <option value="operacao" {% if dev.location=='operacao' %}selected{% endif %}>✅ Operação
+                                </option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="inline-select select-cond" title="Estado Físico">
+                                <option value="bom" {% if dev.condition=='bom' %}selected{% endif %}>👍 Bom</option>
+                                <option value="com_defeito" {% if dev.condition=='com_defeito' %}selected{% endif %}>👎
+                                    Defeito</option>
+                                <option value="manutencao" {% if dev.condition=='manutencao' %}selected{% endif %}>🔧
+                                    Manut.</option>
+                            </select>
+                        </td>
+                        <td>{{ dev.current_user_id or '-' }}</td>
+                        <td>{{ dev.updated_at.strftime('%d/%m/%Y %H:%M') if dev.updated_at else '-' }}</td>
+
+                        <td
+                            style="text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                            <div class="spinner-border spinner-border-sm text-primary d-none ui-spinner" role="status">
+                            </div>
+                            <i class="fas fa-check-circle text-success d-none ui-check"></i>
+
+                            <i class="fas fa-save save-btn ui-save" title="Salvar Alterações"
+                                onclick="updateStock(this, '{{ dev.id }}')"></i>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('last-update').innerText = new Date().toLocaleDateString('pt-BR');
+
+    // --- LÓGICA DE SALVAMENTO AJAX (BLINDADA) ---
+    function updateStock(buttonElement, deviceId) {
+        // Encontra exatamente a linha da tabela onde o usuário clicou
+        var linha = buttonElement.closest('tr');
+
+        // Extrai os valores das caixas de seleção apenas daquela linha
+        var newLocation = linha.querySelector('.select-loc').value;
+        var newCondition = linha.querySelector('.select-cond').value;
+
+        // Extrai os ícones daquela linha
+        var spinner = linha.querySelector('.ui-spinner');
+        var check = linha.querySelector('.ui-check');
+        var saveIcon = linha.querySelector('.ui-save');
+
+        saveIcon.classList.add('d-none');
+        spinner.classList.remove('d-none');
+        check.classList.add('d-none');
+
+        var payloadData = {
+            "location": newLocation,
+            "condition": newCondition
+        };
+
+        fetch('/estoque/update/' + deviceId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payloadData)
+        })
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                spinner.classList.add('d-none');
+
+                if (data.success) {
+                    check.classList.remove('d-none');
+                    setTimeout(function () {
+                        check.classList.add('d-none');
+                        saveIcon.classList.remove('d-none');
+                    }, 2000);
+                } else {
+                    saveIcon.classList.remove('d-none');
+                    alert("Erro ao salvar: " + data.message);
+                }
+            })
+            .catch(function (error) {
+                spinner.classList.add('d-none');
+                saveIcon.classList.remove('d-none');
+                alert('Erro de conexão com o servidor.');
+                console.error('Error:', error);
+            });
+    }
+
+    // --- LÓGICA DE FILTRAGEM ---
+    function filtrarTabela() {
+        var nome = document.getElementById('filtro-nome').value.toLowerCase();
+        var status = document.getElementById('filtro-status').value;
+        var localizacao = document.getElementById('filtro-localizacao').value;
+        var linhas = document.querySelectorAll('.estoque-table tbody tr');
+
+        for (var i = 0; i < linhas.length; i++) {
+            var tr = linhas[i];
+            var tds = tr.querySelectorAll('td');
+            var nomeEquip = tds[0].innerText.toLowerCase();
+            var statusVal = tds[2].innerText.toLowerCase();
+            var locVal = tds[3].querySelector('.select-loc').value;
+
+            var show = true;
+            if (nome && nomeEquip.indexOf(nome) === -1) show = false;
+            if (status && statusVal.indexOf(status.replace('_', ' ')) === -1) show = false;
+            if (localizacao && locVal !== localizacao) show = false;
+
+            tr.style.display = show ? '' : 'none';
+        }
+    }
+</script>
+{% endblock %}
+
+{% block actions %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-voltar-custom"
+        style="text-decoration: none !important; background-color: #6c757d; color: white; padding: 10px 25px; border-radius: 5px; font-weight: bold;">
+        ↩ Voltar
+    </a>
+</div>
+{% endblock %}

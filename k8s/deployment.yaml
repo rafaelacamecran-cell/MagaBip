@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magabip-flask
+  labels:
+    app: magabip
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: magabip
+  template:
+    metadata:
+      labels:
+        app: magabip
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: magabip
+        image: magabip-flask:latest
+        imagePullPolicy: Never # For local development with Minikube/Kind
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DATABASE_URL
+          value: "postgresql+pg8000://postgres:password@postgres-service:5432/MagaLabsLogPrint"
+        - name: SECRET_KEY
+          value: "magalabs_secret_key_123"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "250m"
+            memory: "256Mi"

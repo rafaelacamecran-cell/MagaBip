@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- Mantendo a responsividade padrão ou ajuste conforme preferir -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo ao MagaBip</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo_magabip.png') }}">
+
+
+    <style>
+        :root {
+            --magalu-blue: #0d7ee7;
+            --magalu-text-light: #696969;
+            --magalu-background: #FFFFFF;
+            --magalu-gray-text: #B5B5B5;
+            /* Cor para o texto do rodapé */
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Barra de gradiente animada */
+        @keyframes gradientSlide {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 200% 50%;
+            }
+        }
+
+        .gradient-bar {
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, #7B00FF, #00B4FF, #00FFB0, #FFFF00, #FFB000, #FF0000, #FF007B, #7B00FF, #00B4FF, #00FFB0);
+            background-size: 200% 100%;
+            animation: gradientSlide 4s linear infinite;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Cabeçalho superior (Azul) */
+        .header {
+            width: 100%;
+            background-color: var(--magalu-blue);
+            color: Snow;
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        /* Conteúdo principal */
+        .welcome-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        /* --- IMAGEM DO LOGO (NOVO) --- */
+        .logo-icon {
+            width: 300px;
+            /* Tamanho ajustado para a imagem */
+            height: auto;
+            margin-bottom: 0.0rem;
+        }
+
+        /* Textos */
+        .welcome-title {
+            font-size: 1.5rem;
+            font-weight: 250;
+            color: #8B8989;
+            margin: 0;
+        }
+
+        .welcome-subtitle {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #8B8989;
+            margin: 0.5rem 0 2.5rem 0;
+        }
+
+        .welcome-help {
+            font-size: 0.9rem;
+            color: #8B8989;
+            max-width: 300px;
+            margin-top: 2rem;
+            line-height: 1.5;
+        }
+
+        /* Botão "Entrar" */
+        .button {
+            display: inline-block;
+            padding: 0.9rem 4rem;
+            border: none;
+            border-radius: 50px;
+            /* Mais arredondado para combinar com o login */
+            background-color: var(--magalu-blue);
+            color: Snow;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            box-sizing: border-box;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+            /* Sombra suave */
+        }
+
+        .button:hover {
+            background-color: #0d7ee7;
+            /* Tom mais escuro ao passar o mouse */
+        }
+
+        /* --- RODAPÉ (Desenvolvedor e Versão) --- */
+        .footer-info {
+            margin-top: auto;
+            /* Empurra para o final se sobrar espaço, ou fica abaixo do conteúdo */
+            padding: 1rem;
+            width: 100%;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--magalu-gray-text);
+            background-color: #f8f9fa;
+            /* Garante fundo cinza claro */
+        }
+
+        .footer-info p {
+            margin: 3px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        Sistema MagaBip
+    </header>
+    <div class="gradient-bar"></div>
+
+    <main class="welcome-container">
+
+        <!-- 1. IMAGEM DO LOGO (Substituindo o SVG) -->
+        <img src="{{ url_for('static', filename='img/logo_magabip.png') }}" alt="Logo Magalog" class="logo-icon">
+
+        <h1 class="welcome-title">Bem-vindo ao</h1>
+        <h2 class="welcome-subtitle">MagaBip</h2>
+
+        <a href="{{ url_for('auth.login') }}" class="button">
+            Entrar
+        </a>
+
+        <p class="welcome-help">
+            Você será redirecionado para a tela de identificação.<br>
+        </p>
+
+
+    </main>
+
+    <!-- 2. RODAPÉ -->
+    <footer class="footer-info">
+        <p>Desenvolvido por <strong>Rafaela Camecran</strong></p>
+        <p>&copy; 2026 - Versão 1.0</p>
+    </footer>
+
+    <!-- Opcional: Barra colorida inferior também -->
+    <!-- <div class="gradient-bar"></div> -->
+
+</body>
+
+</html>

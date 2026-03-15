@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Histórico - {{ device.name }}{% endblock %}
+{% block page_title %}Histórico do Ativo: <span style="color: #0d7ee7;">{{ device.name }}</span>{% endblock %}
+
+{% block content %}
+<style>
+    /* --- LAYOUT GRID --- */
+    .history-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    @media (min-width: 992px) {
+        .history-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .history-column h3 {
+        border-bottom: 2px solid #0d7ee7;
+        padding-bottom: 10px;
+        color: #8B8989;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* --- TABELAS --- */
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+    }
+
+    .history-table th,
+    .history-table td {
+        border-bottom: 1px solid #eee;
+        padding: 12px 15px;
+        text-align: left;
+        font-size: 0.8rem;
+        vertical-align: middle;
+    }
+
+    .history-table th {
+        background-color: #0d7ee7;
+        font-weight: 700;
+        color: white;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+    }
+
+    .history-table tr:hover {
+        background-color: #f9f9f9;
+    }
+
+    /* --- BOTÃO VOLTAR (Igual Dashboard) --- */
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 20px;
+        height: 35px;
+        border-radius: 50px;
+        background-color: #8B8989;
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.8rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        transition: 0.2s;
+        border: none;
+        text-transform: uppercase;
+    }
+
+    .btn-back:hover {
+        opacity: 0.9;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    /* --- BADGES --- */
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 50px;
+        color: #FFFAFA;
+        font-weight: bold;
+        font-size: 0.75rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        display: inline-block;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .status-resolvido {
+        background-color: #27ae60;
+    }
+
+    /* Verde */
+    .status-aberto {
+        background-color: #FFD700;
+        color: #fff;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Amarelo */
+    .status-em-uso {
+        background-color: #0d7ee7;
+    }
+
+    /* Azul */
+
+    .user-name {
+        font-weight: 700;
+        color: #444;
+    }
+
+    .date-info {
+        font-size: 0.75rem;
+        color: #888;
+        margin-top: 2px;
+    }
+</style>
+
+<div class="history-grid">
+
+    <div class="history-column">
+        <h3>📋 Histórico de Uso</h3>
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Colaborador</th>
+                    <th>Retirada</th>
+                    <th>Devolução</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in checkout_logs %}
+                <tr>
+                    <td>
+                        <div class="user-name">{{ log.user.name }}</div>
+                    </td>
+                    <td>
+                        {{ log.checkout_time.strftime('%d/%m') }}
+                        <div class="date-info">{{ log.checkout_time.strftime('%H:%M') }}</div>
+                    </td>
+                    <td>
+                        {% if log.checkin_time %}
+                        {{ log.checkin_time.strftime('%d/%m') }}
+                        <div class="date-info">{{ log.checkin_time.strftime('%H:%M') }}</div>
+                        {% else %}
+                        <span class="status-badge status-em-uso">Em uso</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 20px; color: #999;">✖︎ Nenhum registro de uso.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="history-column">
+        <h3>🛠️ Histórico de Manutenção</h3>
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th style="width: 30%;">Reportado Por</th>
+                    <th style="width: 50%;">Detalhes</th>
+                    <th style="width: 20%;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in support_tickets %}
+                <tr>
+                    <td>
+                        <div class="user-name">{{ ticket.reported_by.name }}</div>
+                        <div class="date-info">{{ ticket.created_at.strftime('%d/%m/%Y') }}</div>
+                        <div class="date-info">{{ ticket.created_at.strftime('%H:%M') }}</div>
+                    </td>
+
+                    <td style="white-space: normal; line-height: 1.4;">
+                        <span style="display:block; margin-bottom: 5px; color: #333;">{{ ticket.problem_description
+                            }}</span>
+
+                        {% if ticket.zendesk_link %}
+                        <a href="{{ ticket.zendesk_link }}" target="_blank"
+                            style="font-size: 0.75rem; color: #0d7ee7; font-weight: bold; text-decoration: none; border-bottom: 1px dotted #0d7ee7;">
+                            🔗 Ver no Zendesk
+                        </a>
+                        {% endif %}
+
+                        {% if ticket.status == 'resolvido' and ticket.resolved_by %}
+                        <div style="margin-top: 8px; font-size: 0.7rem; color: #27ae60; font-weight: bold;">
+                            ✔︎ Resolvido por: {{ ticket.resolved_by.name }}
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if ticket.status == 'resolvido' %}
+                        <span class="status-badge status-resolvido">Resolvido</span>
+                        {% else %}
+                        <span class="status-badge status-aberto">Aberto</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center; padding: 20px; color: #999;">✔︎ Nenhum chamado aberto.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block actions %}
+<div style="display: flex; justify-content: center; margin-top: 20px;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-voltar-custom" style="text-decoration: none !important;">
+        ↩ Voltar
+    </a>
+</div>
+{% endblock %}

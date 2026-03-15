@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Relatório de Atrasos{% endblock %}
+{% block page_title %}🚨 Alerta de Devoluções Pendentes{% endblock %}
+
+{% block content %}
+<style>
+    .alert-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 30px;
+        border-left: 8px solid #ef4444;
+    }
+
+    .status-warning {
+        background-color: #fee2e2;
+        color: #991b1b;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    .table-atrasos {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+
+    .table-atrasos th {
+        padding: 15px;
+        color: #6b7280;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+
+    .table-atrasos td {
+        background: white;
+        padding: 15px;
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+    }
+
+    .table-atrasos tr td:first-child {
+        border-left: 1px solid #eee;
+        border-radius: 10px 0 0 10px;
+    }
+
+    .table-atrasos tr td:last-child {
+        border-right: 1px solid #eee;
+        border-radius: 0 10px 10px 0;
+    }
+</style>
+
+<div class="alert-card">
+    <h3 style="margin-top:0; color: #b91c1c;">Monitoramento de Ativos</h3>
+    <p style="color: #666;">Os equipamentos abaixo ultrapassaram o tempo limite do turno cadastrado e ainda não foram
+        devolvidos no sistema.</p>
+</div>
+
+{% if atrasados %}
+<div style="overflow-x: auto;">
+    <table class="table-atrasos">
+        <thead>
+            <tr>
+                <th>Equipamento</th>
+                <th>Colaborador</th>
+                <th>Turno</th>
+                <th>Horário de Retirada</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in atrasados %}
+            <tr>
+                <td><strong>{{ item.equipamento }}</strong><br><small class="text-muted">{{ item.tipo|capitalize
+                        }}</small></td>
+                <td>{{ item.colaborador }}<br><small class="text-muted">ID: {{ item.colaborador_id }}</small></td>
+                <td><span class="badge bg-light text-dark">{{ item.turno }}</span></td>
+                <td>{{ item.retirada }}</td>
+                <td><span class="status-warning">DEVOLUÇÃO EM ATRASO</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div style="text-align: center; padding: 50px;">
+    <i class="fa-solid fa-circle-check" style="font-size: 4rem; color: #10b981; margin-bottom: 20px;"></i>
+    <h4>Tudo em ordem!</h4>
+    <p class="text-muted">Não há devoluções pendentes no momento.</p>
+</div>
+{% endif %}
+
+<div style="margin-top: 30px; text-align: center;">
+    <a href="{{ url_for('main.dashboard') }}" class="btn-modal btn-cancel"
+        style="text-decoration: none; display: inline-block;">↩ Voltar ao Início</a>
+</div>
+{% endblock %}
